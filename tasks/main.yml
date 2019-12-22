@@ -1,0 +1,50 @@
+# Standards: 0.1
+---
+- name: Fact twitch user
+  set_fact:
+    twitch_user: "{{ twitch_user | default(homebrew_user) | default(ansible_user_id) }}"
+  tags:
+    - twitch
+
+- name: Install psutil package
+  pip:
+    name: psutil
+  tags:
+    - twitch
+
+- become: "{{ (twitch_user != ansible_user_id) | bool }}"
+  become_user: "{{ twitch_user }}"
+  block:
+    - name: Install required package
+      ignore_errors: True
+      homebrew_cask:
+        name: twitch
+        greedy: True
+        options: appdir=/Applications
+        accept_external_apps: False
+        state: upgraded
+      tags:
+        - twitch
+
+    - name: Remove quarantine flag
+      register: twitch_quarantine
+      failed_when: twitch_quarantine.rc != 0 and "No such xattr" not in twitch_quarantine.stderr
+      changed_when: twitch_quarantine.rc == 0
+      command: xattr -d com.apple.quarantine /Applications/Twitch.app
+      tags:
+        - twitch
+
+    - name: Check program running
+      register: twitch_running
+      pids:
+        name: Twitch
+      tags:
+        - twitch
+
+    - name: Fact program running
+      set_fact:
+        twitch_started: "{{ twitch_running.pids | length > 0 }}}"
+      tags:
+        - twitch
+
+...

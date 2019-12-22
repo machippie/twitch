@@ -1,0 +1,16 @@
+# Standards: 0.1
+---
+- name: Kill twitch
+  command: killall Twitch
+  register: twitch_kill
+  failed_when: twitch_kill.rc != 0 and "No matching processes belonging to you were found" not in twitch_kill.stderr
+  become: "{{ (twitch_user != ansible_user_id) | bool }}"
+  become_user: "{{ twitch_user }}"
+
+- name: Start twitch
+  when: twitch_started
+  command: open -g /Applications/Twitch.app
+  become: "{{ (twitch_user != ansible_user_id) | bool }}"
+  become_user: "{{ twitch_user }}"
+
+...
