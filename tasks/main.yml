@@ -6,12 +6,6 @@
   tags:
     - twitch
 
-- name: Install psutil package
-  pip:
-    name: psutil
-  tags:
-    - twitch
-
 - become: "{{ (twitch_user != ansible_user_id) | bool }}"
   become_user: "{{ twitch_user }}"
   block:
@@ -34,16 +28,24 @@
       tags:
         - twitch
 
+    - name: Install pidof package
+      homebrew:
+        name: pidof
+      tags:
+        - twitch
+
     - name: Check program running
       register: twitch_running
-      pids:
-        name: Twitch
+      check_mode: False
+      failed_when: False
+      changed_when: twitch_running.stdout | length > 0 | bool
+      command: pidof Twitch
       tags:
         - twitch
 
     - name: Fact program running
       set_fact:
-        twitch_started: "{{ twitch_running.pids | length > 0 }}}"
+        twitch_started: "{{ twitch_running.stdout_lines | length > 0 | bool }}"
       tags:
         - twitch
 
