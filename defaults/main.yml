@@ -1,0 +1,10 @@
+# Standards: 0.1
+---
+# @var twitch_user:description: User to run user-specific commands
+# @var twitch_user:value: twitch_user | default(homebrew_user) | default(ansible_user_id)
+# twitch_user:
+
+# @var twitch_started:description: Restart app if already running
+twitch_started: True
+
+...
